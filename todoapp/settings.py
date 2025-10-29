@@ -43,6 +43,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -80,7 +81,9 @@ DATABASES = {
         'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.postgresql'),
         'NAME': os.environ.get('DB_NAME', 'todoapp_db'),
         'USER': os.environ.get('DB_USER', 'postgres'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        # When running under Docker Compose the DB service is reachable at hostname 'db'.
+        # Use environment variable DB_HOST to override when running locally.
+        'HOST': os.environ.get('DB_HOST', 'db'),
         'PORT': os.environ.get('DB_PORT', '5432'),
         'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),
     }
@@ -140,4 +143,8 @@ STATICFILES_DIRS = (
     # os.path.join(PROJECT_ROOT, 'static'),
 )
 
-STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Use BigAutoField by default to avoid auto-created AutoField warnings on new projects
+# See: https://docs.djangoproject.com/en/stable/ref/settings/#default-auto-field
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

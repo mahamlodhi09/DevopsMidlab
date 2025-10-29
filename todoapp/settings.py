@@ -81,9 +81,13 @@ DATABASES = {
         'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.postgresql'),
         'NAME': os.environ.get('DB_NAME', 'todoapp_db'),
         'USER': os.environ.get('DB_USER', 'postgres'),
-        # When running under Docker Compose the DB service is reachable at hostname 'db'.
-        # Use environment variable DB_HOST to override when running locally.
-        'HOST': os.environ.get('DB_HOST', 'db'),
+    # Default DB host is 'localhost'. When running under Docker Compose the
+    # `web` service sets `DB_HOST=db` in the container environment which
+    # will override this default. This avoids resolution errors when the
+    # project is deployed to platforms (like Render) that don't provide a
+    # service named 'db'. Use a proper DATABASE_URL env var (recommended)
+    # or set DB_HOST explicitly in the deployment environment.
+    'HOST': os.environ.get('DB_HOST', 'localhost'),
         'PORT': os.environ.get('DB_PORT', '5432'),
         'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),
     }

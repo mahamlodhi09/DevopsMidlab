@@ -165,8 +165,8 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/django-todo:${{ github.sha }}
-            ${{ secrets.DOCKER_USERNAME }}/django-todo:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/django-todo:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/django-todo:latest
 
       - name: Deployment successful
         run: |

@@ -20,5 +20,6 @@ RUN python -c "import django; print(django.__version__)"
 # Expose port 8000 for Django
 EXPOSE 8000
 
-# Command to run the server
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Use Gunicorn in production and bind to the port Render provides at runtime.
+# Fall back to 8000 if $PORT is not set (useful for local testing).
+CMD ["sh", "-c", "gunicorn todoapp.wsgi --bind 0.0.0.0:${PORT:-8000} --log-file -"]

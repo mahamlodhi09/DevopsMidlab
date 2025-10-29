@@ -10,9 +10,10 @@ https://docs.djangoproject.com/en/1.11/howto/deployment/wsgi/
 import os
 
 from django.core.wsgi import get_wsgi_application
-from whitenoise.django import DjangoWhiteNoise
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "todoapp.settings")
 
 application = get_wsgi_application()
-application = DjangoWhiteNoise(application)
+# WhiteNoise is configured via middleware (see settings.MIDDLEWARE).
+# For modern whitenoise versions the DjangoWhiteNoise helper was removed.
+# Keep a plain WSGI application here.

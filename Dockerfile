@@ -1,36 +1,27 @@
-# Use an official Python image
+# Use an official Python runtime as a parent image
 FROM python:3.10-slim
 # Use an official Python image
 FROM python:3.10-slim
 
-# Set working directory
+# Set workdir
 WORKDIR /app
 
-# Copy requirements first (for caching efficiency)
-COPY requirements.txt .
+# Install system deps needed for psycopg2 (if using psycopg2)
+RUN apt-get update && apt-get install -y --no-install-recommends gcc libpq-dev && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies
+# Copy requirements and install (cache friendly)
+COPY requirements.txt /app/
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of your project
+# Copy project files
+COPY . /app
 
-# Install dependencies
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# Verify Django installation (correct call)
+RUN python -c "import django; print(django.get_version())"
 
-# Copy the rest of your project
-COPY . .
-
-# Verify Django installation
-RUN python -c "import django; print(django.__version__)"
-# Verify Django installation
-RUN python -c "import django; print(django.__version__)"
-
-# Expose port 8000 for Django
-# Expose port 8000 for Django
+# Expose port (for local runs; Render uses $PORT)
 EXPOSE 8000
 
-# Use Gunicorn in production and bind to the port Render provides at runtime.
-# Fall back to 8000 if $PORT is not set (useful for local testing).
-CMD ["sh", "-c", "gunicorn todoapp.wsgi --bind 0.0.0.0:${PORT:-8000} --log-file -"]
+# Use shell form so ${PORT:-8000} expansion works
+CMD sh -c "gunicorn todoapp.wsgi:application --bind 0.0.0.0:${PORT:-8000} --log-file -"

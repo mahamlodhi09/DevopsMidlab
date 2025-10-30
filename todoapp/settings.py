@@ -93,26 +93,11 @@ DATABASES = {
     }
 }
 
-# Only use DATABASE_URL if explicitly provided (e.g., by Render or similar).
-# In development with Docker Compose, we use individual DB_* settings.
-# This prevents .env DATABASE_URL from accidentally overriding our Docker setup.
+# Update database configuration with $DATABASE_URL.
 import dj_database_url
 
-if 'DATABASE_URL' in os.environ:
-    # On Render.com or similar, use the full DATABASE_URL
-    DATABASES['default'] = dj_database_url.config(
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
-    # Log that we're using DATABASE_URL (helpful for debugging)
-    print(f"Using DATABASE_URL with host: {DATABASES['default']['HOST']}")
-else:
-    print(
-        "No DATABASE_URL found. Using individual settings:\n"
-        f"Host: {DATABASES['default']['HOST']}\n"
-        f"Port: {DATABASES['default']['PORT']}\n"
-        f"Database: {DATABASES['default']['NAME']}"
-    )
+db_from_env = dj_database_url.config(conn_max_age=500)
+DATABASES['default'].update(db_from_env)
 
 
 # Password validation

@@ -1,29 +1,49 @@
-# Use an official Python runtime as a parent image
-FROM python:3.10-slim
-# Use an official Python image
-FROM python:3.10-slim
-# Use an official Python image
-FROM python:3.10-slim
+# -----------------------------
+# Stage 1: Builder
+# -----------------------------
+FROM python:3.10-slim AS builder
 
-# Set workdir
 WORKDIR /app
 
-# Install system deps needed for psycopg2 (if using psycopg2)
-RUN apt-get update && apt-get install -y --no-install-recommends gcc libpq-dev && rm -rf /var/lib/apt/lists/*
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install (cache friendly)
-COPY requirements.txt /app/
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# Copy requirements first (cache-friendly)
+COPY requirements.txt .
+
+# Install Python dependencies into a virtual location
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir --prefix=/install -r requirements.txt
+
+# -----------------------------
+# Stage 2: Runtime
+# -----------------------------
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Install runtime dependency only (no gcc)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy installed Python packages from builder
+COPY --from=builder /install /usr/local
 
 # Copy project files
-COPY . /app
+COPY . .
 
-# Verify Django installation (correct call)
+# Verify Django installation
 RUN python -c "import django; print(django.get_version())"
 
-# Expose port (for local runs; Render uses $PORT)
+# Expose port
 EXPOSE 8000
 
-# Use shell form so ${PORT:-8000} expansion works
-CMD sh -c "gunicorn todoapp.wsgi:application --bind 0.0.0.0:${PORT:-8000} --log-file -"
+# Start Django using Gunicorn
+CMD sh -c "gunicorn todoapp.wsgi:application \
+    --bind 0.0.0.0:${PORT:-8000} \
+    --workers 3 \
+    --log-file -"

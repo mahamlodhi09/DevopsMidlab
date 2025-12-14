@@ -1,87 +1,28 @@
+version: "3.9"
 
-# version: "3.9"
-
-# services:
-#   # PostgreSQL Database Service
-#   db:
-#     image: postgres:15-alpine
-#     container_name: django_todo_db
-#     environment:
-#       # Database name and user (can be overridden via env vars or a .env file)
-#       POSTGRES_DB: ${DB_NAME:-todoapp_db}
-#       POSTGRES_USER: ${DB_USER:-postgres}
-#       # Explicit superuser password for local Docker development.
-#       # Override by setting DB_PASSWORD in your environment or a .env file.
-#       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
-#       # If you intentionally want an insecure, passwordless DB for local dev,
-#       # you can set POSTGRES_HOST_AUTH_METHOD=trust (NOT recommended for production).
-#       # POSTGRES_HOST_AUTH_METHOD: trust
-#     volumes:
-#       - postgres_data:/var/lib/postgresql/data
-#     ports:
-#       - "5432:5432"
-#     healthcheck:
-#       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
-#       interval: 10s
-#       timeout: 5s
-#       retries: 5
-#     networks:
-#       - todo_network
-
-#   # Django Application Service
-#   web:
-#     build:
-#       context: .
-#       dockerfile: Dockerfile
-#     container_name: django_todo_app
-#     command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
-#     environment:
-#       DEBUG: ${DEBUG:-False}
-#       SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
-#       DB_ENGINE: django.db.backends.postgresql
-#       DB_NAME: ${DB_NAME:-todoapp_db}
-#       DB_USER: ${DB_USER:-postgres}
-#       DB_PASSWORD: ${DB_PASSWORD:-postgres}
-#       DB_HOST: db
-#       DB_PORT: 5432
-#       ALLOWED_HOSTS: localhost,127.0.0.1,web
-#     ports:
-#       - "8000:8000"
-#     volumes:
-#       - .:/app
-#     depends_on:
-#       db:
-#         condition: service_healthy
-#     networks:
-#       - todo_network
-
-# volumes:
-#   postgres_data:
-
-# networks:
-#   todo_network:
-#     driver: bridge
 services:
   db:
     image: postgres:15-alpine
     container_name: django_todo_db
     restart: always
     environment:
-      # Database name and user (can be overridden via env vars or a .env file)
-      POSTGRES_DB: ${DB_NAME:-todoapp_db}
-      POSTGRES_USER: ${DB_USER:-postgres}
-      # Explicit superuser password for local Docker development.
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
-    ports:
-      - "${DB_PORT:-5432}:5432"
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
+    networks:
+      - todo_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: django_todo_redis
+    restart: always
     networks:
       - todo_network
 
@@ -90,24 +31,26 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: django_todo_app
-    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    command: >
+      sh -c "python manage.py migrate &&
+      gunicorn todoapp.wsgi:application --bind 0.0.0.0:8000"
     environment:
-      DEBUG: ${DEBUG:-False}
-      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      DEBUG: ${DEBUG}
+      SECRET_KEY: ${SECRET_KEY}
       DB_ENGINE: django.db.backends.postgresql
-      DB_NAME: ${DB_NAME:-todoapp_db}
-      DB_USER: ${DB_USER:-postgres}
-      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
       DB_HOST: db
-      DB_PORT: ${DB_PORT:-5432}
-      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,web}
+      DB_PORT: 5432
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
     ports:
       - "8000:8000"
-    volumes:
-      - .:/app
     depends_on:
-      db:
-        condition: service_healthy
+      - db
+      - redis
     networks:
       - todo_network
 

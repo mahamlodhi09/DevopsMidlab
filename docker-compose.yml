@@ -47,7 +47,7 @@ services:
       REDIS_PORT: 6379
       ALLOWED_HOSTS: ${ALLOWED_HOSTS}
     ports:
-      - "8000:8000"
+      - "8080:8000"
     depends_on:
       - db
       - redis

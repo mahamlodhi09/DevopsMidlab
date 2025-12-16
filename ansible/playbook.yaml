@@ -1,0 +1,49 @@
+---
+- name: Configure app environment
+  hosts: all       # Will work on local or AWS nodes
+  become: yes
+  vars:
+    app_image: todoapp:latest   # Replace with your Docker image
+    app_name: myapp
+    app_port: 8080
+    config_src: ../config/app_config.yaml
+    config_dest: /home/{{ ansible_user }}/app_config.yaml
+
+  tasks:
+
+    - name: Update apt packages (Ubuntu/Debian)
+      apt:
+        update_cache: yes
+        upgrade: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Ensure Docker service is running
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Pull application Docker image
+      docker_image:
+        name: "{{ app_image }}"
+        source: pull
+
+    - name: Run application container
+      docker_container:
+        name: "{{ app_name }}"
+        image: "{{ app_image }}"
+        state: started
+        restart_policy: always
+        ports:
+          - "{{ app_port }}:{{ app_port }}"
+
+    - name: Deploy application configuration
+      copy:
+        src: "{{ config_src }}"
+        dest: "{{ config_dest }}"

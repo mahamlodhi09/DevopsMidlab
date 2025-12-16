@@ -1,21 +1,19 @@
 module "eks" {
-  source          = "terraform-aws-modules/eks/aws"
-  cluster_name    = var.eks_cluster_name
-  cluster_version = "1.28"
-  subnets         = aws_subnet.public[*].id
-  vpc_id          = aws_vpc.main.id
+  source  = "terraform-aws-modules/eks/aws"
+  version = "~> 20.0"
 
-  node_groups = {
-    todo_nodes = {
-      desired_capacity = 2
-      max_capacity     = 2
-      min_capacity     = 1
-      instance_type    = "t3.medium"
+  cluster_name    = var.cluster_name
+  cluster_version = "1.29"
+
+  vpc_id     = aws_vpc.main.id
+  subnet_ids = aws_subnet.public[*].id
+
+  eks_managed_node_groups = {
+    default = {
+      instance_types = ["t3.medium"]
+      min_size       = 1
+      max_size       = 2
+      desired_size   = 1
     }
-  }
-
-  tags = {
-    Environment = "dev"
-    Project     = "todoapp"
   }
 }

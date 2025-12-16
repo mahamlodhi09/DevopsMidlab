@@ -6,12 +6,14 @@ variable "vpc_cidr" {
   default = "10.0.0.0/16"
 }
 
-variable "db_name" {}
-variable "db_user" {}
-variable "db_password" {
-  sensitive = true
+variable "cluster_name" {
+  default = "exam-eks-cluster"
 }
 
-variable "eks_cluster_name" {
-  default = "todo-eks"
+variable "db_username" {
+  default = "postgres"
+}
+
+variable "db_password" {
+  sensitive = true
 }

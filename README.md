@@ -1,7 +1,7 @@
+# DevOps Lab – Terminal Project
+
 ## Maham Lodhi - FA22-BCS-167  
 ## Laiba Maqsood - FA22-BCS-124  
-
-# DevOps Lab – Terminal Project
 
 ## 1. Running Locally
 

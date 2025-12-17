@@ -6,6 +6,7 @@ services:
     container_name: django_todo_db
     restart: always
     environment:
+<<<<<<< HEAD
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -13,6 +14,15 @@ services:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+=======
+      POSTGRES_DB: ${DB_NAME:-todoapp}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres123}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+>>>>>>> 0ab6c93e75e705766a49b85cb754bb65f430f005
       interval: 10s
       timeout: 5s
       retries: 5
@@ -35,22 +45,42 @@ services:
       sh -c "python manage.py migrate &&
       gunicorn todoapp.wsgi:application --bind 0.0.0.0:8000"
     environment:
+<<<<<<< HEAD
       DEBUG: ${DEBUG}
       SECRET_KEY: ${SECRET_KEY}
       DB_ENGINE: django.db.backends.postgresql
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
+=======
+      DEBUG: ${DEBUG:-True}
+      SECRET_KEY: ${SECRET_KEY:-django-secret-key-12345}
+      DB_ENGINE: django.db.backends.postgresql
+      DB_NAME: ${DB_NAME:-todoapp}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres123}
+>>>>>>> 0ab6c93e75e705766a49b85cb754bb65f430f005
       DB_HOST: db
       DB_PORT: 5432
       REDIS_HOST: redis
       REDIS_PORT: 6379
+<<<<<<< HEAD
       ALLOWED_HOSTS: ${ALLOWED_HOSTS}
     ports:
       - "8080:8000"
     depends_on:
       - db
       - redis
+=======
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
+    ports:
+      - "8080:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+>>>>>>> 0ab6c93e75e705766a49b85cb754bb65f430f005
     networks:
       - todo_network
 

@@ -1,5 +1,9 @@
 terraform {
+<<<<<<< HEAD
   required_version = ">= 1.3"
+=======
+  required_version = ">= 1.0"
+>>>>>>> 0ab6c93e75e705766a49b85cb754bb65f430f005
 
   required_providers {
     aws = {
@@ -11,4 +15,8 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 0ab6c93e75e705766a49b85cb754bb65f430f005

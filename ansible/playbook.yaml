@@ -1,4 +1,5 @@
 ---
+<<<<<<< HEAD
 - name: Configure app environment
   hosts: all       # Will work on local or AWS nodes
   become: yes
@@ -16,19 +17,36 @@
         update_cache: yes
         upgrade: yes
       when: ansible_os_family == "Debian"
+=======
+- name: Configure DevOps Application Server
+  hosts: local
+  become: yes
+
+  tasks:
+    - name: Update system packages
+      apt:
+        update_cache: yes
+        upgrade: yes
+>>>>>>> 0ab6c93e75e705766a49b85cb754bb65f430f005
 
     - name: Install Docker
       apt:
         name: docker.io
         state: present
+<<<<<<< HEAD
       when: ansible_os_family == "Debian"
 
     - name: Ensure Docker service is running
+=======
+
+    - name: Start and enable Docker service
+>>>>>>> 0ab6c93e75e705766a49b85cb754bb65f430f005
       service:
         name: docker
         state: started
         enabled: yes
 
+<<<<<<< HEAD
     - name: Pull application Docker image
       docker_image:
         name: "{{ app_image }}"
@@ -47,3 +65,31 @@
       copy:
         src: "{{ config_src }}"
         dest: "{{ config_dest }}"
+=======
+    - name: Add current user to docker group
+      user:
+        name: "{{ ansible_user_id }}"
+        groups: docker
+        append: yes
+
+    - name: Install docker-compose
+      get_url:
+        url: https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+
+    - name: Create app directory
+      file:
+        path: /home/{{ ansible_user_id }}/app
+        state: directory
+        owner: "{{ ansible_user_id }}"
+        group: "{{ ansible_user_id }}"
+
+    - name: Verify Docker installation
+      command: docker --version
+      register: docker_output
+
+    - name: Display completion message
+      debug:
+        msg: "Server configured successfully! {{ docker_output.stdout }}"
+>>>>>>> 0ab6c93e75e705766a49b85cb754bb65f430f005

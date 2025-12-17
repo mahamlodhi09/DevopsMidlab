@@ -69,3 +69,28 @@ coverage.xml
 .DS_Store
 Thumbs.db
 infra/terraform.tfvars
+<<<<<<< HEAD
+=======
+
+# Add these lines to .gitignore
+.env
+*.csv
+*.pem
+.aws/
+credentials
+
+# Add this line to your .gitignore file
+echo "*.pem" >> .gitignore
+
+infra/.terraform/
+**/.terraform/*
+.terraform/
+*.exe
+@"
+**/.terraform/*
+**/.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfvars
+"@ | Out-File -FilePath .gitignore -Append -Encoding utf8
+>>>>>>> 0ab6c93e75e705766a49b85cb754bb65f430f005

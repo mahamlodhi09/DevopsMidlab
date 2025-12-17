@@ -92,7 +92,14 @@ jobs:
 
       - name: Configure kubeconfig
         run: |
+          mkdir -p $HOME/.kube
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Verify kubectl connection
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
 
       - name: Deploy to Kubernetes
         run: |
@@ -104,13 +111,43 @@ jobs:
           kubectl apply -f k8s/app-deployment.yaml
           kubectl apply -f k8s/service.yaml
 
+      - name: Wait for deployment
+        run: |
+          kubectl rollout status deployment/todoapp -n dev --timeout=5m
+          kubectl rollout status deployment/mysql -n dev --timeout=5m
+          kubectl rollout status deployment/redis -n dev --timeout=5m
+
   # Stage 5: Smoke Tests
   smoke-test:
     needs: deploy
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
       - name: Verify Deployment
         run: |
+          echo "=== Checking Pods ==="
           kubectl get pods -n dev
+          echo ""
+          echo "=== Checking Services ==="
           kubectl get svc -n dev
-          echo "Smoke tests completed successfully"
+          echo ""
+          echo "=== Checking Deployments ==="
+          kubectl get deployments -n dev
+          echo ""
+          echo "✅ Smoke tests completed successfully"
+
+      - name: Check application health
+        run: |
+          kubectl get pods -n dev -l app=todoapp -o jsonpath='{.items[0].status.phase}' | grep -q "Running" && echo "✅ App is running" || echo "❌ App is not running"

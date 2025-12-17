@@ -3,32 +3,27 @@ output "vpc_id" {
   value       = aws_vpc.main.id
 }
 
-output "public_subnet_1_id" {
-  description = "Public Subnet 1 ID"
-  value       = aws_subnet.public_1.id
+output "cluster_endpoint" {
+  description = "Endpoint for EKS cluster"
+  value       = aws_eks_cluster.main.endpoint
 }
 
-output "public_subnet_2_id" {
-  description = "Public Subnet 2 ID"
-  value       = aws_subnet.public_2.id
+output "cluster_name" {
+  description = "EKS cluster name"
+  value       = aws_eks_cluster.main.name
 }
 
-output "security_group_id" {
-  description = "Security Group ID"
-  value       = aws_security_group.app_sg.id
+output "cluster_security_group_id" {
+  description = "Security group ID attached to EKS cluster"
+  value       = aws_security_group.eks_cluster.id
 }
 
-output "ec2_instance_id" {
-  description = "EC2 Instance ID"
-  value       = aws_instance.app_server.id
+output "region" {
+  description = "AWS region"
+  value       = var.aws_region
 }
 
-output "ec2_public_ip" {
-  description = "EC2 Public IP"
-  value       = aws_instance.app_server.public_ip
-}
-
-output "s3_bucket_name" {
-  description = "S3 Bucket Name"
-  value       = aws_s3_bucket.app_storage.id
+output "configure_kubectl" {
+  description = "Command to configure kubectl"
+  value       = "aws eks update-kubeconfig --name ${aws_eks_cluster.main.name} --region ${var.aws_region}"
 }

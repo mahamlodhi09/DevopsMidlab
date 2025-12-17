@@ -4,14 +4,14 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-variable "project_name" {
-  description = "Project name"
+variable "cluster_name" {
+  description = "EKS cluster name"
   type        = string
-  default     = "devopsmidlab"
+  default     = "devops-midlab-cluster"
 }
 
-variable "key_name" {
-  description = "EC2 Key Pair name"
+variable "project_name" {
+  description = "Project name for resource naming"
   type        = string
-  default     = "devops-key"  # You'll need to create this in AWS
+  default     = "devops-midlab"
 }

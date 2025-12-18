@@ -2,112 +2,19 @@ name: CI/CD Pipeline
 
 on:
   push:
-<<<<<<< HEAD
-    branches:
-      - main
-      - develop
+    branches: [main]
   pull_request:
-=======
-    branches: [main, master]
-  pull_request:
-    branches: [main, master]
+    branches: [main]
+  workflow_dispatch:
 
 env:
   DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/todoapp
->>>>>>> 0ab6c93e75e705766a49b85cb754bb65f430f005
 
 jobs:
   # Stage 1: Build & Test
   build-test:
     runs-on: ubuntu-latest
     steps:
-<<<<<<< HEAD
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
-
-      - name: Install Dependencies
-        run: pip install -r requirements.txt
-
-      - name: Run Unit Tests
-        run: |
-          if [ -d "tests" ]; then pytest tests/; fi
-
-  # Stage 2: Lint & Security Scan
-  lint-security:
-    runs-on: ubuntu-latest
-    needs: build-test
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Install Linters
-        run: pip install flake8 bandit
-
-      - name: Run Linter
-        run: flake8 .
-
-      - name: Run Security Scan
-        run: bandit -r .
-
-  # Stage 3: Docker Build & Push
-  docker-build-push:
-    runs-on: ubuntu-latest
-    needs: lint-security
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build Docker Image
-        run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/todoapp:latest .
-
-      - name: Push Docker Image
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/todoapp:latest
-
-  # Stage 4: Deploy App (Ansible + K8s)
-  deploy:
-    runs-on: ubuntu-latest
-    needs: docker-build-push
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Install Ansible
-        run: sudo apt update && sudo apt install -y ansible
-
-      - name: Run Ansible Playbook
-        run: ansible-playbook -i ansible/host.ini ansible/playbook.yaml
-
-      - name: Apply Kubernetes Manifests
-        run: |
-          if [ -d "k8s" ]; then
-            kubectl apply -f k8s/namespace.yaml || true
-            kubectl apply -f k8s/configmap.yaml || true
-            kubectl apply -f k8s/deployment.yaml || true
-            kubectl apply -f k8s/service.yaml || true
-          fi
-
-  # Stage 5: Post-Deploy Smoke Tests
-  smoke-tests:
-    runs-on: ubuntu-latest
-    needs: deploy
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Check Pods
-        run: kubectl get pods --all-namespaces || true
-
-      - name: Check Services
-        run: kubectl get svc --all-namespaces || true
-=======
       - uses: actions/checkout@v4
 
       - name: Set up Python
@@ -130,6 +37,7 @@ jobs:
   # Stage 2: Security & Linting
   lint-security:
     runs-on: ubuntu-latest
+    needs: build-test
     steps:
       - uses: actions/checkout@v4
 
@@ -151,7 +59,7 @@ jobs:
 
   # Stage 3: Docker Build & Push
   docker:
-    needs: [build-test, lint-security]
+    needs: lint-security
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     steps:
@@ -172,9 +80,38 @@ jobs:
             ${{ env.DOCKER_IMAGE }}:latest
             ${{ env.DOCKER_IMAGE }}:${{ github.sha }}
 
-  # Stage 4: Deploy to Kubernetes
-  deploy:
+  # Stage 4: Terraform Apply
+  terraform:
     needs: docker
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Terraform Init
+        working-directory: infra
+        run: terraform init
+
+      - name: Terraform Plan
+        working-directory: infra
+        run: terraform plan
+
+      - name: Terraform Apply
+        working-directory: infra
+        run: terraform apply -auto-approve
+
+  # Stage 5: Deploy to Kubernetes
+  deploy:
+    needs: terraform
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -184,11 +121,15 @@ jobs:
         with:
           version: 'latest'
 
-      - name: Configure kubeconfig
-        run: |
-          mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > $HOME/.kube/config
-          chmod 600 $HOME/.kube/config
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name devops-midlab-cluster
 
       - name: Verify kubectl connection
         run: |
@@ -200,7 +141,7 @@ jobs:
           kubectl apply -f k8s/namespace.yaml
           kubectl apply -f k8s/configmap.yaml
           kubectl apply -f k8s/secret.yaml
-          kubectl apply -f k8s/mysql-deployment.yaml
+          kubectl apply -f k8s/db-deployment.yaml
           kubectl apply -f k8s/redis-deployment.yaml
           kubectl apply -f k8s/app-deployment.yaml
           kubectl apply -f k8s/service.yaml
@@ -208,10 +149,10 @@ jobs:
       - name: Wait for deployment
         run: |
           kubectl rollout status deployment/todoapp -n dev --timeout=5m
-          kubectl rollout status deployment/mysql -n dev --timeout=5m
+          kubectl rollout status deployment/db -n dev --timeout=5m
           kubectl rollout status deployment/redis -n dev --timeout=5m
 
-  # Stage 5: Smoke Tests
+  # Stage 6: Smoke Tests
   smoke-test:
     needs: deploy
     runs-on: ubuntu-latest
@@ -223,11 +164,15 @@ jobs:
         with:
           version: 'latest'
 
-      - name: Configure kubeconfig
-        run: |
-          mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > $HOME/.kube/config
-          chmod 600 $HOME/.kube/config
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name devops-midlab-cluster
 
       - name: Verify Deployment
         run: |
@@ -245,4 +190,3 @@ jobs:
       - name: Check application health
         run: |
           kubectl get pods -n dev -l app=todoapp -o jsonpath='{.items[0].status.phase}' | grep -q "Running" && echo "✅ App is running" || echo "❌ App is not running"
->>>>>>> 0ab6c93e75e705766a49b85cb754bb65f430f005

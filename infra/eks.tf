@@ -8,6 +8,9 @@ module "eks" {
   vpc_id     = aws_vpc.main.id
   subnet_ids = aws_subnet.public[*].id
 
+  create_cloudwatch_log_group = false
+  create_kms_key              = false
+
   eks_managed_node_groups = {
     default = {
       instance_types = ["t3.medium"]

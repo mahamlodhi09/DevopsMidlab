@@ -72,6 +72,10 @@ Cleans all AWS resources.
 - CI/CD pipeline handled via **GitHub Actions**.
 - added aws secrets
 
+<<<<<<< HEAD
 ---
 ---
 ---
+=======
+----
+>>>>>>> 0cd43f1d08c48a33ee2b025df176e520a91aae6b

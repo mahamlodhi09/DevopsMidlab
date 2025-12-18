@@ -5,17 +5,17 @@ output "vpc_id" {
 
 output "cluster_endpoint" {
   description = "Endpoint for EKS cluster"
-  value       = aws_eks_cluster.main.endpoint
+  value       = module.eks.cluster_endpoint
 }
 
 output "cluster_name" {
   description = "EKS cluster name"
-  value       = aws_eks_cluster.main.name
+  value       = module.eks.cluster_name
 }
 
 output "cluster_security_group_id" {
   description = "Security group ID attached to EKS cluster"
-  value       = aws_security_group.eks_cluster.id
+  value       = module.eks.cluster_primary_security_group_id
 }
 
 output "region" {
@@ -25,5 +25,5 @@ output "region" {
 
 output "configure_kubectl" {
   description = "Command to configure kubectl"
-  value       = "aws eks update-kubeconfig --name ${aws_eks_cluster.main.name} --region ${var.aws_region}"
+  value       = "aws eks update-kubeconfig --name ${module.eks.cluster_name} --region ${var.aws_region}"
 }

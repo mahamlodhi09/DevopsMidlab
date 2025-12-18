@@ -71,3 +71,7 @@ Cleans all AWS resources.
   - AWS credentials managed securely by the group  
 - CI/CD pipeline handled via **GitHub Actions**.
 - added aws secrets
+
+---
+---
+---

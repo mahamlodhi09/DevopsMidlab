@@ -69,8 +69,6 @@ coverage.xml
 .DS_Store
 Thumbs.db
 infra/terraform.tfvars
-<<<<<<< HEAD
-=======
 
 # Add these lines to .gitignore
 .env
@@ -93,4 +91,3 @@ infra/.terraform/
 *.tfstate.*
 *.tfvars
 "@ | Out-File -FilePath .gitignore -Append -Encoding utf8
->>>>>>> 0ab6c93e75e705766a49b85cb754bb65f430f005

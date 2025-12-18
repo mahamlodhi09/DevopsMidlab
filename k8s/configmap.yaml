@@ -4,15 +4,11 @@ metadata:
   name: app-config
   namespace: dev
 data:
-<<<<<<< HEAD
   APP_ENV: development
   LOG_LEVEL: info
-  DB_HOST: localhost
-  DB_PORT: "5432"
-  CACHE_HOST: localhost
-  CACHE_PORT: "6379"
-=======
   DB_HOST: mysql
   DB_NAME: appdb
+  DB_PORT: "5432"
+  CACHE_HOST: redis
+  CACHE_PORT: "6379"
   REDIS_HOST: redis
->>>>>>> 0ab6c93e75e705766a49b85cb754bb65f430f005

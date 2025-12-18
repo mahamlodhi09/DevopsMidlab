@@ -1,16 +1,3 @@
-<<<<<<< HEAD
-output "eks_cluster_name" {
-  value = module.eks.cluster_name
-}
-
-output "eks_cluster_endpoint" {
-  value = module.eks.cluster_endpoint
-}
-
-output "rds_endpoint" {
-  value = aws_db_instance.postgres.endpoint
-}
-=======
 output "vpc_id" {
   description = "VPC ID"
   value       = aws_vpc.main.id
@@ -40,4 +27,3 @@ output "configure_kubectl" {
   description = "Command to configure kubectl"
   value       = "aws eks update-kubeconfig --name ${aws_eks_cluster.main.name} --region ${var.aws_region}"
 }
->>>>>>> 0ab6c93e75e705766a49b85cb754bb65f430f005

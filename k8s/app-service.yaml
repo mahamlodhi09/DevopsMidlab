@@ -6,7 +6,7 @@ metadata:
 spec:
   type: NodePort
   selector:
-    app: app
+    app: todoapp
   ports:
     - port: 3000
       targetPort: 3000

@@ -70,3 +70,4 @@ Cleans all AWS resources.
   - GitHub secrets for Docker Hub credentials  
   - AWS credentials managed securely by the group  
 - CI/CD pipeline handled via **GitHub Actions**.
+- added aws secrets
